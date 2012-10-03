@@ -9,11 +9,14 @@
 		<meta name="viewport" content="width=device-width, user-scalable=no">
 		
 		<link href="style.css" rel="stylesheet" type="text/css">
+		<!-- jquery helper -->
+		<script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
 	</head>
 
 	<body>
 			<!-- This is the top bit with the image. 
-		I wonder why there's no image tag here? -->
+		I wonder why there's no image tag here? 
+		Answer: CSS is used to set background image. -->
 		<div class="whitebit"></div>
 
 		<!-- This is, well, the bottom bit -->
@@ -30,12 +33,67 @@
 
 		<!-- Let's put in a timer here -->
 		<script type="text/javascript">
+		var count = 30;
+		var counter = setInterval(timer, 1000); // function as an argument
+												// 1000 means run the "timer" script every 1000ms
 
+		function timer() {
+		    count = count - 1;
+		    if (count <= 0) {
+		        clearInterval(counter);
+		        alert("Boom!");
+		        document.getElementById('button').style.visibility = 'hidden';
+		        return;
+		    }
+
+		    document.getElementById("timer").innerHTML = count + " secs";
+		}
 		</script>
 		
-		<!-- Let's put in the geolocation stuff here -->
-		<script type="text/javascript">
+		<!-- Let's put in the geolocation stuff here 
+		Use jquery to make it a lot easier-->
 		
+		<script type="text/javascript">
+		/*
+		$(function () { // this line means window.onload -- do this when the window is loaded
+    		$("#button").click(function () { // .click - triggers something when you click on the 
+    										 // element with id "button"			
+    										 // $("#button") means find the element with this id
+    										 // change #button to .box -- when you click on box,
+    										 // actions will happen 
+        		//alert("hi");
+
+        		// all of these functions are taken from the jquery library/documentation
+        		//$(".box").hide();
+        		//$(".box").fadeIn();
+        		//$(".box").html("put new text here");
+        		//$(".box").toggle()
+
+
+		    });
+		});*/
+
+
+		// on the loading of the page, do this:
+		$(function () {
+		    $("#button").click(function () {
+		        getLocation();
+		    });
+		});
+
+		function getLocation() {
+		    if (navigator.geolocation) {
+		       navigator.geolocation.getCurrentPosition(showPosition);
+		    } else {
+		        alert("Geolocation is not supported by this browser.");
+		    }
+		}
+
+		function showPosition(position) {
+		    $("box1").alert(position.coords.latitude);
+		    $("box2").alert(position.coords.longitude);
+		}
+
 		</script>
 	</body>
 </html>
