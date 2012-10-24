@@ -1,0 +1,255 @@
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<title>New Claim</title> 
+
+	<link rel="stylesheet" href="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.css" />
+	<link rel="stylesheet" href="css/colors.css">
+  <script src="http://code.jquery.com/jquery-1.4.4.min.js"></script>
+  <script src="http://code.jquery.com/mobile/1.0a2/jquery.mobile-1.0a2.min.js"></script>
+  
+	<script>	 
+	 // Global declarations - assignments made in $(document).ready() below
+    var hdrMainvar = null;
+    var contentMainVar = null;
+    var ftrMainVar = null;
+    var contentTransitionVar = null;
+    var stateLabelVar = null;
+    var whatLabelVar = null;
+    var stateVar = null;
+    var whatVar = null;
+    var form1var = null;
+    var confirmationVar = null;
+    var contentDialogVar = null;
+    var hdrConfirmationVar = null; 
+    var contentConfirmationVar = null;
+    var ftrConfirmationVar = null;
+    var inputMapVar = null;
+    
+    // Constants
+    var MISSING = "missing";
+    var EMPTY = "";
+    var NO_STATE = "ZZ";
+	</script>
+
+</head>
+
+ 
+<body> 
+
+<!-- Page starts here -->
+<div data-role="page" data-theme="d" id="page1">
+
+	<div data-role="header" id="hdrMain" name="hdrMain" data-nobackbtn="true"><h1>Login</h1></div>  
+	<div data-role="content" id="contentMain" name="contentMain">	
+		<!-- LOGIN FORM -->
+		<form id="form1">
+			<div id="userdiv" data-role="fieldcontain">  
+					<label for="user">User</label>  	
+					<input id="user" name="user_r" type="text" />  
+			</div>  
+			<div id="passworddiv" data-role="fieldcontain">  
+					<label for="password">Password</label>  	
+					<input id="password" name="password_r" type="text" />  
+			</div> 
+			<div id="submitDiv" data-role="fieldcontain">    
+			  	<input type="submit" value="Go" data-inline="true"/>
+			</div>
+	    </form>
+	</div>
+  
+	<div data-role="footer" id="ftrMain" name="ftrMain"><h1></h1></div> 
+
+  	<div align="CENTER" data-role="content" id="contentDialog" name="contentDialog">	
+		<div>Please fill in all required fields before submitting the form.</div>
+		<a id="buttonOK" name="buttonOK" href="#page1" data-role="button" data-inline="true">OK</a>
+	</div>	<!-- contentDialog -->
+	
+  <!-- contentTransition is displayed after the form is submitted until a response is received back. -->
+	<div data-role="content" id="contentTransition" name="contentTransition">	
+	 <div align="CENTER"><h4>Your claim has been sent. Please wait.</h4></div>
+	 <div align="CENTER"><img id="spin" name="spin" src="img/wait.gif"/></div>
+	</div>	<!-- contentTransition -->
+	
+	<!-- Although stored within page1 div tag, hdrConfirmation, contentConfirmation and ftrConfirmation represent a self contained 'confirmation page' -->
+	<div data-role="header"  id="hdrConfirmation" name="hdrConfirmation" data-nobackbtn="true">
+		<h1>Claim Created</h1>
+	</div>
+	
+	<div data-role="content" id="contentConfirmation" name="contentConfirmation" align="center">	
+  	<p>A new claim has been created based on data you have submitted.</p> 
+    <p>Your confirmation number is: <span id="confirmation" name="confirmation"></span>  </p>
+	</div><!-- contentConfirmation -->	
+  	
+	<div data-role="footer" id="ftrConfirmation" name="ftrConfirmation"></div> 
+	
+	
+	<script>
+	 
+    $(document).ready(function() {
+    // Assign global variables
+      hdrMainVar = $('#hdrMain');
+      contentMainVar = $('#contentMain');
+      ftrMainVar = $('#ftrMain');
+      contentTransitionVar = $('#contentTransition');
+      stateLabelVar = $('#stateLabel');
+      whatLabelVar = $('#whatLabel');
+      stateVar = $('#state');
+      whatVar = $('#what');
+      form1Var = $('#form1');
+      confirmationVar = $('#confirmation');
+      contentDialogVar = $('#contentDialog');
+      hdrConfirmationVar = $('#hdrConfirmation');
+      contentConfirmationVar = $('#contentConfirmation');
+      ftrConfirmationVar = $('#ftrConfirmation'); 
+      inputMapVar = $('input[name*="_r"]');
+      
+      hideContentDialog();
+      hideContentTransition();
+      hideConfirmation();
+    }); 
+	
+	  $('#buttonOK').click(function() {
+      hideContentDialog();
+      showMain();
+      return false;      
+    });
+   
+    
+    $('#form1').submit(function() {
+        var err = false;
+        // Hide the Main content
+        hideMain();
+        
+        // Reset the previously highlighted form elements
+        stateLabelVar.removeClass(MISSING); 
+        whatLabelVar.removeClass(MISSING);              
+        inputMapVar.each(function(index){              
+          $(this).prev().removeClass(MISSING); 
+        });
+        
+        // Perform form validation
+        inputMapVar.each(function(index){  
+        if($(this).val()==null || $(this).val()==EMPTY){  
+            $(this).prev().addClass(MISSING);            
+            err = true;
+          }          
+        });   
+        if(stateVar.val()==NO_STATE){           
+          stateLabelVar.addClass(MISSING);                     
+          err = true;
+        }            
+        if(whatVar.val()==null||whatVar.val()==EMPTY){   
+          whatLabelVar.addClass(MISSING);   
+          err = true;
+        }
+        
+        // If validation fails, show Dialog content
+        if(err == true){            
+          showContentDialog();
+          return false;
+        }        
+        
+        // If validation passes, show Transition content
+        showContentTransition();
+        
+        // Submit the form
+        $.post("/requestProcessor.php", form1Var.serialize(), function(data){
+          confirmationVar.text(data);
+          hideContentTransition();
+          showConfirmation();
+        });        
+        return false;      
+    });    
+    
+  function hideMain(){
+    hdrMainVar.hide();
+    contentMainVar.hide();
+    ftrMainVar.hide();   
+   }
+   
+  function showMain(){
+    hdrMainVar.show();
+    contentMainVar.show();
+    ftrMainVar.show();
+   }
+   
+   function hideContentTransition(){
+    contentTransitionVar.hide();
+   }      
+   
+   function showContentTransition(){
+    contentTransitionVar.show();
+   }  
+   
+  function hideContentDialog(){
+    contentDialogVar.hide();
+   }   
+   
+   function showContentDialog(){
+    contentDialogVar.show();
+   }
+   
+   function hideConfirmation(){
+    hdrConfirmationVar.hide();
+    contentConfirmationVar.hide();
+    ftrConfirmationVar.hide();
+   }  
+   
+   function showConfirmation(){
+    hdrConfirmationVar.show();
+    contentConfirmationVar.show();
+    ftrConfirmationVar.show();
+   } 
+
+    
+  </script>
+</div> <!-- page1 -->
+
+
+<!-- Page ends here -->
+</body>
+</html>
+
+<!--
+<!DOCTYPE html>
+<html>
+	<head>
+		<title>Login</title>
+		<link rel="stylesheet" href="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.css" />
+		<link rel="stylesheet" href="css/colors.css">
+		<script src="http://code.jquery.com/jquery-1.8.2.min.js"></script>
+		<script src="http://code.jquery.com/mobile/1.2.0/jquery.mobile-1.2.0.min.js"></script>
+	</head>
+
+	<body>
+		<div data-role="page" data-theme="c" id="page1">
+
+			<div data-role="header" id="hdrMain" name="hdrMain" data-nobackbtn="true">
+				<h1>Login</h1>
+			</div>  
+
+			<div data-role="content" id="contentMain" name="contentMain">
+
+				<form id="form">
+					<div id="userdiv" data-role="fieldcontain">  
+	  					<label for="user">User</label>  	
+	  					<input id="user" name="user_r" type="text" />  
+					</div>  
+					<div id="passworddiv" data-role="fieldcontain">  
+	  					<label for="password">Password</label>  	
+	  					<input id="password" name="password_r" type="text" />  
+					</div> 
+					<div id="submitDiv" data-role="fieldcontain">    
+					  	<input type="submit" value="Go" data-inline="true"/>
+					</div>
+				</form> 
+
+  			</div> 
+
+  			<div data-role="footer" id="ftrMain" name="ftrMain"><h1></h1></div> 
+
+		</div>	
+	</body>
+</html>
+-->
